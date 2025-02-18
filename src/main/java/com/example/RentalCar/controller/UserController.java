@@ -19,16 +19,6 @@ public class UserController {
     @Autowired
     private UserRepo userRepo;
 
-    @GetMapping(value = "/users")
-    public List<User> getUsers(){
-        return userRepo.findAll();
-    }
-
-    @PostMapping(value = "/SignIn")
-    public String saveUser(@RequestBody User user){
-        userRepo.save(user);
-        return "User saved successfully.";
-    }
 
     @PutMapping(value = "/update/{id}")
     public String UpdateUser(@RequestBody User user ,@PathVariable Long id){
