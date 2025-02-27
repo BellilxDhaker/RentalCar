@@ -23,6 +23,18 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse register(User request) {
+        /*if (request.getFirstName() == null || request.getFirstName().isEmpty()) {
+            throw new IllegalArgumentException("First name cannot be null or empty. User Details: " +
+                    "First Name: " + request.getFirstName() + ", " +
+                    "Last Name: " + request.getLastName() + ", " +
+                    "Email: " + request.getEmail() + ", " +
+                    "Date of Birth: " + request.getDateOfBirth() + ", " +
+                    "Phone Number: " + request.getPhoneNumber() + ", " +
+                    "Password: " + request.getPassword()+","+
+            "Title: " + request.getTitle());
+
+        }*/
+
         User user = new User();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
@@ -31,7 +43,6 @@ public class AuthenticationService {
         user.setEmail(request.getEmail());
         user.setDateOfBirth(request.getDateOfBirth());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-
         user = userRepo.save(user);
         String token = jwtService.generateToken(user);
         return new AuthenticationResponse(token);

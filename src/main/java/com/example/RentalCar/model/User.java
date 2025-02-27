@@ -1,7 +1,8 @@
 package com.example.RentalCar.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.*;
+import javax.persistence.*;
+
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,30 +25,22 @@ public class User  implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
-
     @Column(name = "title", nullable = false)
     private String title;
-
     @Column(name = "first_name", nullable = false)
     private String firstName;
-
     @Column(name = "last_name", nullable = false)
     private String lastName;
-
     @Column(name = "phone_number", unique = true, nullable = false)
     private String phoneNumber;
-
     @Column(name = "date_of_birth", nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
-
     @Column(name = "email", unique = true, nullable = false)
     private String email;
-
     @Column(name = "password", nullable = false)
     private String password;
-
 
     public Long getId() {
         return id;
@@ -115,16 +108,16 @@ public class User  implements UserDetails {
         this.title = title;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setFirstName(String first_name) {
+        this.firstName = first_name;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setLastName(String last_name) {
+        this.lastName = last_name;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setPhoneNumber(String phone_number) {
+        this.phoneNumber = phone_number;
     }
 
     public void setDateOfBirth(LocalDate dateOfBirth) {
