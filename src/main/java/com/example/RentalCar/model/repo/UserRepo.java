@@ -1,6 +1,6 @@
 package com.example.RentalCar.model.repo;
 
-import com.example.RentalCar.model.User;
+import com.example.RentalCar.model.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

@@ -1,11 +1,10 @@
-package com.example.RentalCar.controller;
+package com.example.RentalCar.restcontroller;
 
-import com.example.RentalCar.model.User;
+import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.model.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController

@@ -1,40 +1,39 @@
 package com.example.RentalCar.service;
 
-import com.example.RentalCar.model.AuthenticationResponse;
-import com.example.RentalCar.model.User;
+import com.example.RentalCar.restcontroller.response.AuthenticationResponse;
+import com.example.RentalCar.model.entities.User;
+import com.example.RentalCar.model.entities.Admin;
 import com.example.RentalCar.model.repo.UserRepo;
+import com.example.RentalCar.model.repo.AdminRepo;
+import com.example.RentalCar.service.implementation.UserDetailsImp;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthenticationService {
     private final UserRepo userRepo;
+    private final AdminRepo adminRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserDetailsImp userDetailsService; // Added to fetch UserDetails
 
-    public AuthenticationService(UserRepo userRepo, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public AuthenticationService(UserRepo userRepo, AdminRepo adminRepo, PasswordEncoder passwordEncoder,
+                                 JwtService jwtService, AuthenticationManager authenticationManager,
+                                 UserDetailsImp userDetailsService) {
         this.userRepo = userRepo;
+        this.adminRepo = adminRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
     }
 
+    // Register a regular user
     public AuthenticationResponse register(User request) {
-        /*if (request.getFirstName() == null || request.getFirstName().isEmpty()) {
-            throw new IllegalArgumentException("First name cannot be null or empty. User Details: " +
-                    "First Name: " + request.getFirstName() + ", " +
-                    "Last Name: " + request.getLastName() + ", " +
-                    "Email: " + request.getEmail() + ", " +
-                    "Date of Birth: " + request.getDateOfBirth() + ", " +
-                    "Phone Number: " + request.getPhoneNumber() + ", " +
-                    "Password: " + request.getPassword()+","+
-            "Title: " + request.getTitle());
-
-        }*/
-
         User user = new User();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
@@ -48,16 +47,25 @@ public class AuthenticationService {
         return new AuthenticationResponse(token);
     }
 
-    public AuthenticationResponse authenticate(User request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(), request.getPassword() // Fixed issue
-                )
-        );
-        User user = userRepo.findByEmail(request.getEmail()) // Fixed method name
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    // Register an admin
+    public AuthenticationResponse registerAdmin(Admin request) {
+        Admin admin = new Admin();
+        admin.setFullname(request.getFullname());
+        admin.setEmail(request.getEmail());
+        admin.setPassword(passwordEncoder.encode(request.getPassword()));
+        admin = adminRepo.save(admin);
+        String token = jwtService.generateToken(admin);
+        return new AuthenticationResponse(token);
+    }
 
-        String token = jwtService.generateToken(user);
+    // Authenticate (works for both User and Admin)
+    public AuthenticationResponse authenticate(String email, String password) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, password)
+        );
+        // Use UserDetailsImp to load User or Admin
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        String token = jwtService.generateToken(userDetails);
         return new AuthenticationResponse(token);
     }
 }

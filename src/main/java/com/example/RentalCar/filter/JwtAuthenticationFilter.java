@@ -1,7 +1,7 @@
 package com.example.RentalCar.filter;
 
 import com.example.RentalCar.service.JwtService;
-import com.example.RentalCar.service.UserDetailsImp;
+import com.example.RentalCar.service.implementation.UserDetailsImp;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;

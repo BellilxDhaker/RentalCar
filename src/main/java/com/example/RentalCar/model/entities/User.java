@@ -1,4 +1,4 @@
-package com.example.RentalCar.model;
+package com.example.RentalCar.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import javax.persistence.*;

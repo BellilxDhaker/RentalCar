@@ -1,7 +1,7 @@
 package com.example.RentalCar.config;
 
 import com.example.RentalCar.filter.JwtAuthenticationFilter;
-import com.example.RentalCar.service.UserDetailsImp;
+import com.example.RentalCar.service.implementation.UserDetailsImp;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -31,12 +30,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        req -> req
-                                .requestMatchers(new AntPathRequestMatcher("/login/**"), new AntPathRequestMatcher("/register/**"))
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated()
+                .authorizeHttpRequests(req -> req
+                        .antMatchers("/auth/**").permitAll() // Permit all /auth endpoints
+                        .antMatchers("/user/**").hasRole("USER")
+                        .antMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsImp)
                 .sessionManagement(session -> session

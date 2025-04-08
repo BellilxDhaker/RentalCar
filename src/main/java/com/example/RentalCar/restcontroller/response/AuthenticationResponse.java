@@ -1,4 +1,4 @@
-package com.example.RentalCar.model;
+package com.example.RentalCar.restcontroller.response;
 
 public class AuthenticationResponse {
     private String token;
