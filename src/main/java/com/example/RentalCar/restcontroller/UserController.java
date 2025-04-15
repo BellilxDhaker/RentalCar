@@ -2,17 +2,34 @@ package com.example.RentalCar.restcontroller;
 
 import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.model.repo.UserRepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
 @RestController
 public class UserController {
+    private final Logger log = LoggerFactory.getLogger(UserController.class);
+
+    @Autowired
+    private Environment env;
 
     @GetMapping(value = "/")
-    public String getPage(){
-        return "Welcome";
+    public ResponseEntity<String> getPage() {
+        String debugMessage = String.format(
+                "Instance %s working well on PORT:%s | log level debug ",
+                env.getProperty("spring.application.name"),
+                env.getProperty("server.port")
+
+        );
+        log.info(debugMessage);
+
+        return ResponseEntity.ok(String.format("Instance %s working well on PORT:%s | log level debug ", env.getProperty("spring.application.name"), env.getProperty("server.port")));
+
     }
 
     @Autowired
@@ -20,8 +37,8 @@ public class UserController {
 
 
     @PutMapping(value = "/update/{id}")
-    public String UpdateUser(@RequestBody User user ,@PathVariable Long id){
-        Optional<User> optionalUser=userRepo.findById(id);
+    public String UpdateUser(@RequestBody User user, @PathVariable Long id) {
+        Optional<User> optionalUser = userRepo.findById(id);
         if (optionalUser.isPresent()) {
             User updatedUser = optionalUser.get();
             updatedUser.setFirstName(user.getFirstName());

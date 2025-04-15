@@ -105,4 +105,6 @@ public class VehicleController {
         return vehicleRepository.findAll(spec);
     }
 
+    public static class AppController {
+    }
 }

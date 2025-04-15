@@ -31,7 +31,7 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
-                        .antMatchers("/auth/**").permitAll() // Permit all /auth endpoints
+                        .antMatchers("/auth/**", "/").permitAll() // Permit all /auth endpoints
                         .antMatchers("/user/**").hasRole("USER")
                         .antMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

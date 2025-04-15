@@ -1,12 +1,16 @@
 package com.example.RentalCar.restcontroller;
 
-import com.example.RentalCar.restcontroller.response.AuthenticationResponse;
-import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.model.entities.Admin;
+import com.example.RentalCar.model.entities.User;
+import com.example.RentalCar.restcontroller.request.LoginRequest;
+import com.example.RentalCar.restcontroller.response.AuthenticationResponse;
 import com.example.RentalCar.service.AuthenticationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
@@ -43,12 +47,3 @@ public class AuthenticationController {
     }
 }
 
-class LoginRequest {
-    private String email;
-    private String password;
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-}
