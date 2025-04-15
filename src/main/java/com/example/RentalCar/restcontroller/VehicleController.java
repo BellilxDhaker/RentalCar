@@ -2,7 +2,9 @@ package com.example.RentalCar.restcontroller;
 
 import com.example.RentalCar.model.entities.Vehicle;
 import com.example.RentalCar.model.repo.VehicleRepo;
+import com.example.RentalCar.model.specifications.VehicleSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -86,6 +88,21 @@ public class VehicleController {
         } else {
             return ResponseEntity.notFound().build(); // Return 404 if the vehicle doesn't exist
         }
+    }
+    @GetMapping("/user/filter")
+    public List<Vehicle> filterVehicles(
+            @RequestParam(required = false) Integer seats,
+            @RequestParam(required = false) String transmission,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "true") boolean sortAscending
+    ) {
+        Specification<Vehicle> spec = Specification
+                .where(VehicleSpecification.hasSeats(seats))
+                .and(VehicleSpecification.hasTransmission(transmission))
+                .and(VehicleSpecification.hasCategory(category))
+                .and(sortAscending ? VehicleSpecification.sortByPriceAsc() : VehicleSpecification.sortByPriceDesc());
+
+        return vehicleRepository.findAll(spec);
     }
 
 }

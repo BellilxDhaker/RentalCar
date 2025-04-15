@@ -26,11 +26,12 @@ public class Vehicle {
     private String category;
 
     private Integer numberOfSeats;
+    private String transmission;
 
     public Vehicle() {
     }
 
-    public Vehicle(Integer vehicleID, String model, String brand, Double pricePerDay, Boolean availability, String imageURL, Integer manufacturingYear, String category, Integer numberOfSeats) {
+    public Vehicle(Integer vehicleID, String model, String brand, Double pricePerDay, Boolean availability, String imageURL, Integer manufacturingYear, String category, Integer numberOfSeats, String transmission) {
         this.vehicleID = vehicleID;
         this.model = model;
         this.brand = brand;
@@ -40,9 +41,8 @@ public class Vehicle {
         this.manufacturingYear = manufacturingYear;
         this.category = category;
         this.numberOfSeats = numberOfSeats;
+        this.transmission = transmission;
     }
-
-
 
     public void setModel(String model) {
         this.model = model;
@@ -110,5 +110,12 @@ public class Vehicle {
 
     public Integer getNumberOfSeats() {
         return numberOfSeats;
+    }
+    public String getTransmission() {
+        return transmission;
+    }
+
+    public void setTransmission(String transmission) {
+        this.transmission = transmission;
     }
 }
