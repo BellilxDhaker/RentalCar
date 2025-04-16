@@ -37,23 +37,42 @@ public class UserController {
 
 
     @PutMapping(value = "/update/{id}")
-    public String UpdateUser(@RequestBody User user, @PathVariable Long id) {
+    public String updateUser(@RequestBody User user, @PathVariable Long id) {
         Optional<User> optionalUser = userRepo.findById(id);
+
         if (optionalUser.isPresent()) {
             User updatedUser = optionalUser.get();
-            updatedUser.setFirstName(user.getFirstName());
-            updatedUser.setLastName(user.getLastName());
-            updatedUser.setTitle(user.getTitle());
-            updatedUser.setPhoneNumber(user.getPhoneNumber());
-            updatedUser.setDateOfBirth(user.getDateOfBirth());
-            updatedUser.setEmail(user.getEmail());
-            updatedUser.setPassword(user.getPassword());
+
+            // Only update fields that are not null
+            if (user.getFirstName() != null) {
+                updatedUser.setFirstName(user.getFirstName());
+            }
+            if (user.getLastName() != null) {
+                updatedUser.setLastName(user.getLastName());
+            }
+            if (user.getTitle() != null) {
+                updatedUser.setTitle(user.getTitle());
+            }
+            if (user.getPhoneNumber() != null) {
+                updatedUser.setPhoneNumber(user.getPhoneNumber());
+            }
+            if (user.getDateOfBirth() != null) {
+                updatedUser.setDateOfBirth(user.getDateOfBirth());
+            }
+            if (user.getEmail() != null) {
+                updatedUser.setEmail(user.getEmail());
+            }
+            if (user.getPassword() != null) {
+                updatedUser.setPassword(user.getPassword());
+            }
+
             userRepo.save(updatedUser);
             return "User updated successfully!";
         } else {
             return "User item with ID " + id + " not found.";
         }
     }
+
 
     @DeleteMapping("/delete/{id}")
     public String deleteUser(@PathVariable Long id) {

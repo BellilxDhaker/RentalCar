@@ -67,28 +67,45 @@ public class VehicleController {
     // Update vehicle details by ID
     @PutMapping("/admin/update/vehicle/{id}")
     public ResponseEntity<Vehicle> updateVehicle(@PathVariable Integer id, @RequestBody Vehicle updatedVehicle) {
-        Optional<Vehicle> existingVehicle = vehicleRepository.findById(id);
+        Optional<Vehicle> existingVehicleOpt = vehicleRepository.findById(id);
 
-        if (existingVehicle.isPresent()) {
-            Vehicle vehicle = existingVehicle.get();
+        if (existingVehicleOpt.isPresent()) {
+            Vehicle vehicle = existingVehicleOpt.get();
 
-            // Update the fields with the new values
-            vehicle.setBrand(updatedVehicle.getBrand());
-            vehicle.setCategory(updatedVehicle.getCategory());
-            vehicle.setImageURL(updatedVehicle.getImageURL());
-            vehicle.setManufacturingYear(updatedVehicle.getManufacturingYear());
-            vehicle.setModel(updatedVehicle.getModel());
-            vehicle.setNumberOfSeats(updatedVehicle.getNumberOfSeats());
-            vehicle.setPricePerDay(updatedVehicle.getPricePerDay());
-            vehicle.setAvailability(updatedVehicle.getAvailability());
+            // Only update fields that are not null in the request
+            if (updatedVehicle.getBrand() != null) {
+                vehicle.setBrand(updatedVehicle.getBrand());
+            }
+            if (updatedVehicle.getCategory() != null) {
+                vehicle.setCategory(updatedVehicle.getCategory());
+            }
+            if (updatedVehicle.getImageURL() != null) {
+                vehicle.setImageURL(updatedVehicle.getImageURL());
+            }
+            if (updatedVehicle.getManufacturingYear() != null) {
+                vehicle.setManufacturingYear(updatedVehicle.getManufacturingYear());
+            }
+            if (updatedVehicle.getModel() != null) {
+                vehicle.setModel(updatedVehicle.getModel());
+            }
+            if (updatedVehicle.getNumberOfSeats() != null) {
+                vehicle.setNumberOfSeats(updatedVehicle.getNumberOfSeats());
+            }
+            if (updatedVehicle.getPricePerDay() != null) {
+                vehicle.setPricePerDay(updatedVehicle.getPricePerDay());
+            }
+            if (updatedVehicle.getAvailability() != null) {
+                vehicle.setAvailability(updatedVehicle.getAvailability());
+            }
 
             // Save the updated vehicle
             Vehicle savedVehicle = vehicleRepository.save(vehicle);
-            return ResponseEntity.ok(savedVehicle); // Return updated vehicle
+            return ResponseEntity.ok(savedVehicle);
         } else {
-            return ResponseEntity.notFound().build(); // Return 404 if the vehicle doesn't exist
+            return ResponseEntity.notFound().build();
         }
     }
+
     @GetMapping("/user/filter")
     public List<Vehicle> filterVehicles(
             @RequestParam(required = false) Integer seats,
