@@ -10,5 +10,4 @@ public class RentalCarApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         SpringApplication.run(RentalCarApplication.class, args);
     }
-
 }
