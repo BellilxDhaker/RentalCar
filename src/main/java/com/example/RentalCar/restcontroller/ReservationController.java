@@ -1,5 +1,6 @@
 package com.example.RentalCar.restcontroller;
 
+import com.example.RentalCar.model.DTO.ApiResponse;
 import com.example.RentalCar.model.entities.Extras;
 import com.example.RentalCar.model.entities.Reservation;
 import com.example.RentalCar.model.entities.User;
@@ -7,6 +8,7 @@ import com.example.RentalCar.model.entities.Vehicle;
 import com.example.RentalCar.model.repo.ReservationRepo;
 import com.example.RentalCar.model.repo.UserRepo;
 import com.example.RentalCar.model.repo.VehicleRepo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,131 +33,159 @@ public class ReservationController {
     @Autowired
     private VehicleRepo vehicleRepo;
 
-    // ------------------- Admin Routes ------------------------
-
     @GetMapping("/admin/reservations")
-    public List<Reservation> getAllReservations() {
-        return reservationRepo.findAll();
+    public ResponseEntity<ApiResponse<List<Reservation>>> getAllReservations() {
+        List<Reservation> reservations = reservationRepo.findAll();
+        return ResponseEntity.ok(new ApiResponse<>("All reservations fetched successfully", reservations, null));
     }
 
     @GetMapping("/admin/reservation/{id}")
-    public ResponseEntity<Reservation> getReservationById(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<Reservation>> getReservationById(@PathVariable Integer id) {
         return reservationRepo.findById(id)
-                .map(ResponseEntity::ok)
+                .map(res -> ResponseEntity.ok(new ApiResponse<>("Reservation found", res, null)))
                 .orElseGet(() -> {
-                    LOGGER.warning("Reservation not found: ID " + id);
-                    return ResponseEntity.notFound().build();
+                    String msg = "Reservation not found: ID " + id;
+                    LOGGER.warning(msg);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new ApiResponse<>(null, null, msg));
                 });
     }
 
     @PutMapping("/admin/reservation/{id}")
-    public ResponseEntity<?> updateReservationAdmin(@PathVariable Integer id, @RequestBody Reservation updatedReservation, BindingResult result) {
+    public ResponseEntity<ApiResponse<Reservation>> updateReservationAdmin(
+            @PathVariable Integer id,
+            @RequestBody Reservation updatedReservation,
+            BindingResult result) {
         return handleUpdateReservation(id, updatedReservation, result, true);
     }
 
     @DeleteMapping("/admin/reservation/{id}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable Integer id) {
-        if (reservationRepo.existsById(id)) {
+    public ResponseEntity<ApiResponse<Void>> deleteReservation(@PathVariable Integer id) {
+        Optional<Reservation> reservationOpt = reservationRepo.findById(id);
+        if (reservationOpt.isPresent()) {
+            Reservation reservation = reservationOpt.get();
+            Vehicle vehicle = reservation.getVehicle();
+            if (vehicle != null) {
+                vehicle.setAvailability(true); // Make vehicle available again
+                vehicleRepo.save(vehicle);
+            }
             reservationRepo.deleteById(id);
             LOGGER.info("Reservation deleted: ID " + id);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(new ApiResponse<>("Reservation deleted successfully", null, null));
         }
-        LOGGER.warning("Attempted to delete non-existent reservation ID " + id);
-        return ResponseEntity.notFound().build();
+        String msg = "Attempted to delete non-existent reservation ID " + id;
+        LOGGER.warning(msg);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse<>(null, null, msg));
     }
 
-    // ------------------- User Routes ------------------------
-
     @PostMapping("/user/reservation")
-    public ResponseEntity<?> createReservation(@RequestBody Reservation reservation, BindingResult result) {
-        LOGGER.info("Received reservation request");
+    public ResponseEntity<ApiResponse<Reservation>> createReservation(
+            @RequestBody Reservation reservation,
+            BindingResult result) {
+        LOGGER.info("Received reservation creation request");
         return handleCreateOrUpdateReservation(null, reservation, result, false);
     }
 
     @PutMapping("/user/reservation/{id}")
-    public ResponseEntity<?> updateReservationUser(@PathVariable Integer id, @RequestBody Reservation reservation, BindingResult result) {
+    public ResponseEntity<ApiResponse<Reservation>> updateReservationUser(
+            @PathVariable Integer id,
+            @RequestBody Reservation reservation,
+            BindingResult result) {
         return handleUpdateReservation(id, reservation, result, false);
     }
 
-    // ------------------- Shared Logic ------------------------
+    // ---------------- Shared Logic ---------------- //
 
-    private ResponseEntity<?> handleUpdateReservation(Integer id, Reservation reservation, BindingResult result, boolean isAdmin) {
+    private ResponseEntity<ApiResponse<Reservation>> handleUpdateReservation(
+            Integer id,
+            Reservation reservation,
+            BindingResult result,
+            boolean isAdmin) {
         return reservationRepo.findById(id)
                 .map(existing -> handleCreateOrUpdateReservation(id, reservation, result, isAdmin))
                 .orElseGet(() -> {
-                    LOGGER.warning("Reservation not found for update: ID " + id);
-                    return ResponseEntity.notFound().build();
+                    String msg = "Reservation not found for update: ID " + id;
+                    LOGGER.warning(msg);
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new ApiResponse<>(null, null, msg));
                 });
     }
 
-    private ResponseEntity<?> handleCreateOrUpdateReservation(Integer id, Reservation reservation, BindingResult result, boolean isAdmin) {
+    private ResponseEntity<ApiResponse<Reservation>> handleCreateOrUpdateReservation(
+            Integer id,
+            Reservation reservation,
+            BindingResult result,
+            boolean isAdmin) {
+
+        // Validation errors
         if (result.hasErrors()) {
-            Map<String, String> errors = result.getFieldErrors().stream()
-                    .collect(Collectors.toMap(
-                            fieldError -> fieldError.getField(),
-                            fieldError -> fieldError.getDefaultMessage()
-                    ));
-            LOGGER.warning("Validation errors: " + errors);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+            String errorMessages = result.getFieldErrors().stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .collect(Collectors.joining(", "));
+            LOGGER.warning("Validation errors: " + errorMessages);
+            return ResponseEntity.badRequest().body(new ApiResponse<>(null, null, errorMessages));
         }
 
         // User validation
         if (reservation.getUser() == null || reservation.getUser().getId() == null) {
-            LOGGER.warning("Missing user ID");
-            return ResponseEntity.badRequest().body("User ID is required");
+            return ResponseEntity.badRequest().body(new ApiResponse<>("User ID is required", null, "Missing user ID"));
         }
         Optional<User> userOpt = userRepo.findById(reservation.getUser().getId());
         if (userOpt.isEmpty()) {
-            LOGGER.warning("User not found: ID " + reservation.getUser().getId());
-            return ResponseEntity.badRequest().body("User not found");
+            return ResponseEntity.badRequest().body(new ApiResponse<>("User not found", null, "Invalid user ID"));
         }
 
         // Vehicle validation
         if (reservation.getVehicle() == null || reservation.getVehicle().getVehicleID() == null) {
-            LOGGER.warning("Missing vehicle ID");
-            return ResponseEntity.badRequest().body("Vehicle ID is required");
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Vehicle ID is required", null, "Missing vehicle ID"));
         }
         Optional<Vehicle> vehicleOpt = vehicleRepo.findById(reservation.getVehicle().getVehicleID());
         if (vehicleOpt.isEmpty()) {
-            LOGGER.warning("Vehicle not found: ID " + reservation.getVehicle().getVehicleID());
-            return ResponseEntity.badRequest().body("Vehicle not found");
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Vehicle not found", null, "Invalid vehicle ID"));
+        }
+
+        Vehicle vehicle = vehicleOpt.get();
+
+        // Check availability only if it's a new reservation or vehicle is changed
+        if (id == null && !vehicle.getAvailability()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ApiResponse<>("Vehicle is not available", null, "The selected vehicle is already reserved"));
         }
 
         // Set validated entities
         reservation.setUser(userOpt.get());
-        reservation.setVehicle(vehicleOpt.get());
+        reservation.setVehicle(vehicle);
         if (id != null) {
             reservation.setReservationID(id);
         }
 
         // Handle extras
         Map<Extras, Integer> extras = reservation.getExtras();
-        if (extras != null) {
-            try {
-                // Clear existing extras to avoid duplicates (optional, see note below)
-                reservation.setExtras(new HashMap<>());
-
-                // Add each extra using addExtra to enforce multi-select limits
+        try {
+            reservation.setExtras(new HashMap<>());
+            if (extras != null) {
                 for (Map.Entry<Extras, Integer> entry : extras.entrySet()) {
                     if (entry.getKey() != null && entry.getValue() != null && entry.getValue() > 0) {
                         reservation.addExtra(entry.getKey(), entry.getValue());
                     } else {
-                        LOGGER.warning("Invalid extra: " + (entry.getKey() == null ? "null key" : entry.getKey()) +
-                                ", quantity: " + entry.getValue());
+                        LOGGER.warning("Invalid extra: " + entry.getKey() + ", quantity: " + entry.getValue());
                     }
                 }
-            } catch (IllegalArgumentException e) {
-                LOGGER.warning("Failed to add extras: " + e.getMessage());
-                return ResponseEntity.badRequest().body("Failed to add extras: " + e.getMessage());
             }
-        } else {
-            // Clear extras if none provided to ensure consistency
-            reservation.setExtras(new HashMap<>());
+        } catch (IllegalArgumentException e) {
+            LOGGER.warning("Failed to add extras: " + e.getMessage());
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Invalid extras", null, e.getMessage()));
         }
 
-        LOGGER.info((id != null ? "Updating" : "Creating") + " reservation: Total Amount = " + reservation.getTotalAmount());
+        // Save reservation and mark vehicle as unavailable
+        vehicle.setAvailability(false);
+        vehicleRepo.save(vehicle);
 
+        LOGGER.info((id != null ? "Updating" : "Creating") + " reservation: Total Amount = " + reservation.getTotalAmount());
         Reservation saved = reservationRepo.save(reservation);
-        return new ResponseEntity<>(saved, id == null ? HttpStatus.CREATED : HttpStatus.OK);
+        String msg = (id == null ? "Reservation created successfully" : "Reservation updated successfully");
+        return ResponseEntity.status(id == null ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(new ApiResponse<>(msg, saved, null));
     }
 }
