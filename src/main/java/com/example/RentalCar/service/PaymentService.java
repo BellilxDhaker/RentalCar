@@ -6,6 +6,7 @@ import com.example.RentalCar.model.entities.Payment;
 import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.model.repo.PaymentRepo;
 import com.example.RentalCar.model.repo.UserRepo;
+import com.squareup.square.Environment;
 import com.squareup.square.SquareClient;
 import com.squareup.square.exceptions.ApiException;
 import com.squareup.square.models.*;
@@ -30,8 +31,8 @@ public class PaymentService {
             UserRepo userRepository
     ) {
         this.squareClient = new SquareClient.Builder()
-                .environment(environment.equals("sandbox") ? com.squareup.square.Environment.SANDBOX : com.squareup.square.Environment.PRODUCTION)
                 .accessToken(accessToken)
+                .environment(environment.equalsIgnoreCase("sandbox") ? Environment.SANDBOX : Environment.PRODUCTION)
                 .build();
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
@@ -39,18 +40,41 @@ public class PaymentService {
 
     public PaymentResult processPayment(PaymentRequest dto) {
         try {
+            // Validate input
+            if (dto.getUserId() == null) {
+                throw new IllegalArgumentException("User ID must be provided");
+            }
+            if (dto.getAmount() == null || dto.getAmount() <= 0) {
+                throw new IllegalArgumentException("Amount must be provided and greater than 0");
+            }
+            if (dto.getCurrency() == null || dto.getCurrency().isEmpty()) {
+                throw new IllegalArgumentException("Currency must be provided");
+            }
+            if (dto.getSourceId() == null || dto.getSourceId().isEmpty()) {
+                throw new IllegalArgumentException("Source ID must be provided");
+            }
+
+            // Build amountMoney for the payment
+            Money amountMoney = new Money.Builder()
+                    .amount(dto.getAmount().longValue()) // Amount in cents (e.g., 1000 = $10.00)
+                    .currency(dto.getCurrency()) // e.g., "USD"
+                    .build();
+
             // Build the payment request for Square API
             CreatePaymentRequest body = new CreatePaymentRequest.Builder(
                     dto.getSourceId(),
-                    UUID.randomUUID().toString()
-            ).build();
+                    dto.getIdempotencyKey() != null ? dto.getIdempotencyKey() : UUID.randomUUID().toString()
+            )
+                    .amountMoney(amountMoney)
+                    .build();
 
             // Call Square API to process payment
             CreatePaymentResponse response = squareClient.getPaymentsApi().createPayment(body);
             com.squareup.square.models.Payment payment = response.getPayment();
 
             // Retrieve user details from the repository
-            User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
+            User user = userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             // Save payment details to your repository
             Payment savedPayment = new Payment();
@@ -67,15 +91,21 @@ public class PaymentService {
             // Return a result with status and message
             return new PaymentResult(payment.getStatus(), payment.getId(), "Payment successful");
 
-        }catch (ApiException e) {
-            // Log the API exception message and print more detailed info
+        } catch (ApiException e) {
+            // Log detailed error information
             System.out.println("API error details: " + e.getMessage());
             if (e.getErrors() != null) {
-                e.getErrors().forEach(error -> System.out.println("Error: " + error.getDetail()));
+                e.getErrors().forEach(error -> System.out.println(
+                        "Error: Category=" + error.getCategory() + ", Code=" + error.getCode() + ", Detail=" + error.getDetail()
+                ));
             }
-            return new PaymentResult("FAILED", null, "API Error: " + e.getMessage());
+            String errorMessage = e.getErrors() != null && !e.getErrors().isEmpty() ? e.getErrors().get(0).getDetail() : e.getMessage();
+            return new PaymentResult("FAILED", null, "API Error: " + errorMessage);
+        } catch (IllegalArgumentException e) {
+            // Handle validation errors
+            return new PaymentResult("FAILED", null, "Validation Error: " + e.getMessage());
         } catch (Exception e) {
-            // General error handling, log or return internal server error message
+            // General error handling
             return new PaymentResult("FAILED", null, "Internal error: " + e.getMessage());
         }
     }

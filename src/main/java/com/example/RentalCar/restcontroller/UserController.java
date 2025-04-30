@@ -36,7 +36,7 @@ public class UserController {
     private UserRepo userRepo;
 
 
-    @PutMapping(value = "/update/{id}")
+    @PutMapping(value = "/auth/update/{id}")
     public String updateUser(@RequestBody User user, @PathVariable Long id) {
         Optional<User> optionalUser = userRepo.findById(id);
 
@@ -74,7 +74,7 @@ public class UserController {
     }
 
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/admin/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
         Optional<User> optionalFood = userRepo.findById(id);
 

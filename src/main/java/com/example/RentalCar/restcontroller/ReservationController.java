@@ -1,5 +1,6 @@
 package com.example.RentalCar.restcontroller;
 
+import com.example.RentalCar.model.entities.Extras;
 import com.example.RentalCar.model.entities.Reservation;
 import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.model.entities.Vehicle;
@@ -120,11 +121,38 @@ public class ReservationController {
             return ResponseEntity.badRequest().body("Vehicle not found");
         }
 
+        // Set validated entities
         reservation.setUser(userOpt.get());
         reservation.setVehicle(vehicleOpt.get());
+        if (id != null) {
+            reservation.setReservationID(id);
+        }
 
-        if (id != null) reservation.setReservationID(id);
-        reservation.calculateTotalAmount();
+        // Handle extras
+        Map<Extras, Integer> extras = reservation.getExtras();
+        if (extras != null) {
+            try {
+                // Clear existing extras to avoid duplicates (optional, see note below)
+                reservation.setExtras(new HashMap<>());
+
+                // Add each extra using addExtra to enforce multi-select limits
+                for (Map.Entry<Extras, Integer> entry : extras.entrySet()) {
+                    if (entry.getKey() != null && entry.getValue() != null && entry.getValue() > 0) {
+                        reservation.addExtra(entry.getKey(), entry.getValue());
+                    } else {
+                        LOGGER.warning("Invalid extra: " + (entry.getKey() == null ? "null key" : entry.getKey()) +
+                                ", quantity: " + entry.getValue());
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+                LOGGER.warning("Failed to add extras: " + e.getMessage());
+                return ResponseEntity.badRequest().body("Failed to add extras: " + e.getMessage());
+            }
+        } else {
+            // Clear extras if none provided to ensure consistency
+            reservation.setExtras(new HashMap<>());
+        }
+
         LOGGER.info((id != null ? "Updating" : "Creating") + " reservation: Total Amount = " + reservation.getTotalAmount());
 
         Reservation saved = reservationRepo.save(reservation);

@@ -106,7 +106,7 @@ public class VehicleController {
         }
     }
 
-    @GetMapping("/user/filter")
+    @GetMapping("/auth/filter")
     public List<Vehicle> filterVehicles(
             @RequestParam(required = false) Integer seats,
             @RequestParam(required = false) String transmission,
