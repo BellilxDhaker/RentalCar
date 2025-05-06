@@ -1,16 +1,21 @@
 package com.example.RentalCar.restcontroller;
 
+import com.example.RentalCar.model.DTO.ApiResponse;
 import com.example.RentalCar.model.DTO.PaymentRequest;
 import com.example.RentalCar.model.DTO.PaymentResult;
+import com.example.RentalCar.model.repo.PaymentRepo;
 import com.example.RentalCar.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private PaymentRepo paymentRepo;
 
     @Autowired
     public PaymentController(PaymentService paymentService) {
@@ -19,14 +24,20 @@ public class PaymentController {
 
     // Endpoint to process payment
     @PostMapping("/user/payment")
-    public ResponseEntity<PaymentResult> processPayment(@RequestBody PaymentRequest paymentRequest) {
-        PaymentResult result = paymentService.processPayment(paymentRequest);
+    public ResponseEntity<ApiResponse<PaymentResult>> processPayment(@RequestBody PaymentRequest paymentRequest) {
+        try {
+            PaymentResult result = paymentService.processPayment(paymentRequest);
 
-        if ("SUCCESS".equals(result.getStatus())) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(500).body(result);
+            if ("COMPLETED".equalsIgnoreCase(result.getStatus())) {
+                ApiResponse<PaymentResult> response = new ApiResponse<>("Payment processed successfully", result, null);
+                return ResponseEntity.ok(response);
+            } else {
+                ApiResponse<PaymentResult> response = new ApiResponse<>("Payment failed", result, null);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        } catch (Exception e) {
+            ApiResponse<PaymentResult> response = new ApiResponse<>("An error occurred while processing the payment", null, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-
 }

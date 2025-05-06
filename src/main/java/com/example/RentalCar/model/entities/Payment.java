@@ -36,10 +36,16 @@ public class Payment {
     public Payment() {
     }
 
-    public Payment(User user) {
+    public Payment(Integer paymentID, User user, String transactionId, Integer amount, String currency, String status, LocalDateTime createdAt, String squarePaymentId) {
+        this.paymentID = paymentID;
         this.user = user;
+        this.transactionId = transactionId;
+        this.amount = amount;
+        this.currency = currency;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.squarePaymentId = squarePaymentId;
     }
-
     // Getters and Setters
 
     public Integer getPaymentID() {
