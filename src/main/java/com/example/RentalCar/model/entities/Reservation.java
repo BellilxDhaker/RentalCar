@@ -45,6 +45,7 @@ public class Reservation {
     private Map<Extras, Integer> extras = new HashMap<>();
 
 
+    private String status;
 
 
 
@@ -68,7 +69,7 @@ public class Reservation {
 
     public Reservation(Integer reservationID, Date startDate, Date endDate,
                        String locationPickup, String locationReturn,
-                       Vehicle vehicle, User user, ProtectionType protection) {
+                       Vehicle vehicle, User user, ProtectionType protection,String status) {
         this.reservationID = reservationID;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -77,6 +78,7 @@ public class Reservation {
         this.vehicle = vehicle;
         this.user = user;
         this.protection = protection != null ? protection : ProtectionType.BASIC;
+        this.status = status != null ? status : "PENDING";
         calculateTotalAmount();
     }
 
@@ -125,8 +127,6 @@ public class Reservation {
             calculateTotalAmount();
         }
     }
-
-
 
     // Getters
     public Integer getReservationID() {
@@ -212,5 +212,13 @@ public class Reservation {
 
     public void setExtras(Map<Extras, Integer> extras) {
         this.extras = extras;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

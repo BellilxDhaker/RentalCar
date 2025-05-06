@@ -14,12 +14,15 @@ public class Payment {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
     private User user;
+    @ManyToOne
+    @JoinColumn(name = "reservationID", referencedColumnName = "reservationID", nullable = false)
+    private Reservation reservation;
 
     @Column(name = "transaction_id", unique = true, nullable = false)
     private String transactionId; // Transaction ID from Square
 
     @Column(name = "amount", nullable = false)
-    private Integer amount; // Stored in cents for precision
+    private double amount; // Stored in cents for precision
 
     @Column(name = "currency", length = 3, nullable = false)
     private String currency; // Currency code (e.g., USD)
@@ -36,17 +39,39 @@ public class Payment {
     public Payment() {
     }
 
-    public Payment(Integer paymentID, User user, String transactionId, Integer amount, String currency, String status, LocalDateTime createdAt, String squarePaymentId) {
+    public Payment(Integer paymentID, User user, Reservation reservation, String transactionId, String currency, String status, LocalDateTime createdAt, String squarePaymentId) {
         this.paymentID = paymentID;
         this.user = user;
+        this.reservation = reservation;
         this.transactionId = transactionId;
-        this.amount = amount;
+        this.amount = reservation.getTotalAmount();
         this.currency = currency;
         this.status = status;
         this.createdAt = createdAt;
         this.squarePaymentId = squarePaymentId;
+
+        // Automatically extract amount from reservation
+        if (reservation != null) {
+            this.amount = reservation.getTotalAmount();
+        } else {
+            throw new IllegalArgumentException("Reservation must not be null to extract amount.");
+        }
     }
+
     // Getters and Setters
+
+    public Reservation getReservation() {
+        return reservation;
+    }
+
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
+        this.amount = reservation.getTotalAmount();
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
 
     public Integer getPaymentID() {
         return paymentID;
@@ -70,14 +95,6 @@ public class Payment {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
-    }
-
-    public Integer getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Integer amount) {
-        this.amount = amount;
     }
 
     public String getCurrency() {
@@ -122,7 +139,8 @@ public class Payment {
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
                 ", squarePaymentId='" + squarePaymentId + '\'' +
-                ", userId=" + (user != null ? user.getId() : null) +
+                ", userId=" + (user != null ? user.getId() : null) +'\''+
+                ", resrvationId=" + (reservation != null ? reservation.getReservationID() : null) +
                 '}';
     }
 }

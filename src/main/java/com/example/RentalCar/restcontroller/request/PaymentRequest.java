@@ -9,19 +9,13 @@ import lombok.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 
 public class PaymentRequest {
-    private Long amount;
     private String currency;
     private String sourceId; // from frontend (card nonce)
     private String idempotencyKey;
     private Long userId;
+    private Integer reservationID;
 
-    public Integer getAmount() {
-        return  amount.intValue();
-    }
 
-    public void setAmount(Long amount) {
-        this.amount = amount;
-    }
 
     public String getCurrency() {
         return currency;
@@ -53,5 +47,14 @@ public class PaymentRequest {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+
+    public Integer getReservationID() {
+        return reservationID;
+    }
+
+    public void setReservationID(Integer reservationID) {
+        this.reservationID = reservationID;
     }
 }
