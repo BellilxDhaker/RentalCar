@@ -1,6 +1,7 @@
 package com.example.RentalCar.restcontroller;
 
-import com.example.RentalCar.model.DTO.ApiResponse;
+import com.example.RentalCar.exception.ReservationNotFoundException;
+import com.example.RentalCar.restcontroller.response.ApiResponse;
 import com.example.RentalCar.model.entities.Extras;
 import com.example.RentalCar.model.entities.Reservation;
 import com.example.RentalCar.model.entities.User;
@@ -9,6 +10,7 @@ import com.example.RentalCar.model.repo.ReservationRepo;
 import com.example.RentalCar.model.repo.UserRepo;
 import com.example.RentalCar.model.repo.VehicleRepo;
 
+import com.example.RentalCar.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +30,59 @@ public class ReservationController {
     private ReservationRepo reservationRepo;
 
     @Autowired
+    private ReservationService reservationService;
+
+    @Autowired
     private UserRepo userRepo;
 
     @Autowired
     private VehicleRepo vehicleRepo;
+
+    @PostMapping("/auth/access")
+    public ResponseEntity<ApiResponse<Reservation>> accessBooking(@RequestBody BookingDTO bookingRequest) {
+        try {
+            // Perform the business logic to access the booking
+            Reservation reservation = reservationService.accessBooking(bookingRequest.getEmail(), bookingRequest.getReservationID());
+
+            // Return the success response with clear success message
+            ApiResponse<Reservation> response = new ApiResponse<>(
+                    "Booking successfully retrieved",
+                    reservation,
+                    null
+            );
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (ReservationNotFoundException ex) {
+            // Handle case when reservation is not found
+            ApiResponse<Reservation> response = new ApiResponse<>(
+                    "No reservation found with the provided details",
+                    null,
+                    ex.getMessage()
+            );
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+
+        } catch (IllegalArgumentException ex) {
+            // Handle invalid input scenario
+            ApiResponse<Reservation> response = new ApiResponse<>(
+                    "Invalid data provided. Please check your input",
+                    null,
+                    ex.getMessage()
+            );
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+        } catch (Exception ex) {
+            // Catch all unexpected errors
+            ApiResponse<Reservation> response = new ApiResponse<>(
+                    "An error occurred while processing your request. Please try again later.",
+                    null,
+                    ex.getMessage()
+            );
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
 
     @GetMapping("/admin/reservations")
     public ResponseEntity<ApiResponse<List<Reservation>>> getAllReservations() {
@@ -87,7 +138,7 @@ public class ReservationController {
         return handleCreateOrUpdateReservation(null, reservation, result, false);
     }
 
-    @PutMapping("/user/reservation/{id}")
+    @PutMapping("/auth/reservation/{id}")
     public ResponseEntity<ApiResponse<Reservation>> updateReservationUser(
             @PathVariable Integer id,
             @RequestBody Reservation reservation,
@@ -188,4 +239,27 @@ public class ReservationController {
         return ResponseEntity.status(id == null ? HttpStatus.CREATED : HttpStatus.OK)
                 .body(new ApiResponse<>(msg, saved, null));
     }
+
+    public static class BookingDTO {
+        private String email;
+        private Integer reservationID;
+
+        // Getters and Setters
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public Integer getReservationID() {
+            return reservationID;
+        }
+
+        public void setReservationID(Integer reservationID) {
+            this.reservationID = reservationID;
+        }
+    }
+
 }

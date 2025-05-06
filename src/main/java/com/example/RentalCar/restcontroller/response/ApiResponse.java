@@ -1,4 +1,4 @@
-package com.example.RentalCar.model.DTO;
+package com.example.RentalCar.restcontroller.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

@@ -1,8 +1,8 @@
 package com.example.RentalCar.restcontroller;
 
-import com.example.RentalCar.model.DTO.ApiResponse;
-import com.example.RentalCar.model.DTO.PaymentRequest;
-import com.example.RentalCar.model.DTO.PaymentResult;
+import com.example.RentalCar.restcontroller.response.ApiResponse;
+import com.example.RentalCar.restcontroller.request.PaymentRequest;
+import com.example.RentalCar.restcontroller.response.PaymentResult;
 import com.example.RentalCar.model.repo.PaymentRepo;
 import com.example.RentalCar.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;

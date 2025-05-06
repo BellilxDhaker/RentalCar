@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
@@ -22,5 +23,4 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate
     );
-
 }

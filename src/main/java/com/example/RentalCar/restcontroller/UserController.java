@@ -1,6 +1,6 @@
 package com.example.RentalCar.restcontroller;
 
-import com.example.RentalCar.model.DTO.ApiResponse;
+import com.example.RentalCar.restcontroller.response.ApiResponse;
 import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.model.repo.UserRepo;
 import org.jetbrains.annotations.NotNull;

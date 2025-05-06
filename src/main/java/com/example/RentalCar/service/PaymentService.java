@@ -1,7 +1,7 @@
 package com.example.RentalCar.service;
 
-import com.example.RentalCar.model.DTO.PaymentRequest;
-import com.example.RentalCar.model.DTO.PaymentResult;
+import com.example.RentalCar.restcontroller.request.PaymentRequest;
+import com.example.RentalCar.restcontroller.response.PaymentResult;
 import com.example.RentalCar.model.entities.Payment;
 import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.model.repo.PaymentRepo;

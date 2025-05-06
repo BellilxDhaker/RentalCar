@@ -2,7 +2,7 @@ package com.example.RentalCar.restcontroller;
 
 import com.example.RentalCar.exception.EmailAlreadyExistsException;
 import com.example.RentalCar.exception.PhoneNumberAlreadyExistsException;
-import com.example.RentalCar.model.DTO.ApiResponse;
+import com.example.RentalCar.restcontroller.response.ApiResponse;
 import com.example.RentalCar.model.entities.Admin;
 import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.restcontroller.request.LoginRequest;

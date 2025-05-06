@@ -1,6 +1,6 @@
 package com.example.RentalCar.restcontroller;
 
-import com.example.RentalCar.model.DTO.ApiResponse;
+import com.example.RentalCar.restcontroller.response.ApiResponse;
 import com.example.RentalCar.model.entities.Vehicle;
 import com.example.RentalCar.model.repo.VehicleRepo;
 import com.example.RentalCar.model.specifications.VehicleSpecification;

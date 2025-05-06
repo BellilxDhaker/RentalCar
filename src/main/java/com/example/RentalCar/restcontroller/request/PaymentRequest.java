@@ -1,4 +1,4 @@
-package com.example.RentalCar.model.DTO;
+package com.example.RentalCar.restcontroller.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;

@@ -1,7 +1,6 @@
-package com.example.RentalCar.model.DTO;
+package com.example.RentalCar.restcontroller.response;
 
 import com.example.RentalCar.model.entities.Payment;
-import java.util.List;
 
 public class PaymentResult {
 
