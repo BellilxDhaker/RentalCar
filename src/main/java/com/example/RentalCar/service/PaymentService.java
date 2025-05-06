@@ -15,7 +15,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentService {
@@ -88,8 +90,8 @@ public class PaymentService {
 
             paymentRepository.save(savedPayment);
 
-            // Return a result with status and message
-            return new PaymentResult(payment.getStatus(), payment.getId(), "Payment successful");
+            // Return a result with status and message, including the payment details directly
+            return new PaymentResult(payment.getStatus(), payment.getId(), "Payment successful", savedPayment);
 
         } catch (ApiException e) {
             // Log detailed error information
@@ -100,13 +102,25 @@ public class PaymentService {
                 ));
             }
             String errorMessage = e.getErrors() != null && !e.getErrors().isEmpty() ? e.getErrors().get(0).getDetail() : e.getMessage();
-            return new PaymentResult("FAILED", null, "API Error: " + errorMessage);
+            return new PaymentResult("FAILED", null, "API Error: " + errorMessage,null);
         } catch (IllegalArgumentException e) {
             // Handle validation errors
-            return new PaymentResult("FAILED", null, "Validation Error: " + e.getMessage());
+            return new PaymentResult("FAILED", null, "Validation Error: " + e.getMessage(), null);
         } catch (Exception e) {
             // General error handling
-            return new PaymentResult("FAILED", null, "Internal error: " + e.getMessage());
+            return new PaymentResult("FAILED", null, "Internal error: " + e.getMessage(), null);
         }
+    }
+    // Method to retrieve all payments
+    public List<PaymentResult> getAllPayments() {
+        List<Payment> payments = paymentRepository.findAll();  // Retrieve all payments from the database
+
+        return payments.stream()
+                .map(payment -> new PaymentResult(
+                        payment.getStatus(),
+                        payment.getTransactionId(),
+                        "Payment details retrieved successfully",
+                        payment))
+                .collect(Collectors.toList());
     }
 }

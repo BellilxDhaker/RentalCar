@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 public class PaymentController {
@@ -40,4 +42,25 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+    @GetMapping("/admin/payments")
+    public ResponseEntity<ApiResponse<List<PaymentResult>>> getAllPayments() {
+        try {
+            List<PaymentResult> paymentResults = paymentService.getAllPayments();
+            ApiResponse<List<PaymentResult>> response = new ApiResponse<>(
+                    "All payment records retrieved successfully.",
+                    paymentResults,
+                    null
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<List<PaymentResult>> errorResponse = new ApiResponse<>(
+                    null,
+                    null,
+                    "Error retrieving payments: " + e.getMessage()
+            );
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+
 }
