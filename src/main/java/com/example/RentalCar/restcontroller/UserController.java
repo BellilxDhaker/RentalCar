@@ -1,8 +1,8 @@
 package com.example.RentalCar.restcontroller;
 
-import com.example.RentalCar.restcontroller.response.ApiResponse;
 import com.example.RentalCar.model.entities.User;
 import com.example.RentalCar.model.repo.UserRepo;
+import com.example.RentalCar.restcontroller.response.ApiResponse;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class UserController {
 
 
     @GetMapping(value = "/")
-    public ResponseEntity<ApiResponse> getPage() {
+    public ResponseEntity<String> getPage() {
         try {
             String debugMessage = String.format(
                     "Instance %s working well on PORT:%s | log level debug",
@@ -42,7 +42,7 @@ public class UserController {
                     env.getProperty("server.port")
             );
             log.info(debugMessage);
-            return ResponseEntity.ok(new ApiResponse(debugMessage, null, null));
+            return ResponseEntity.ok(debugMessage);
         } catch (Exception e) {
             log.error("Failed to retrieve service information: {}", e.getMessage(), e);
             throw new ResponseStatusException(
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @PostMapping("/admin/user/create")
-    public ResponseEntity<ApiResponse<User>> createUser( @RequestBody User user) {
+    public ResponseEntity<ApiResponse<User>> createUser(@RequestBody User user) {
         try {
             // Additional validation for null checks
             if (user.getEmail() == null || user.getPassword() == null) {

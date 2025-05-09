@@ -6,7 +6,8 @@
 		https://xmlns.oracle.com/weblogic/weblogic-web-app/1.4/weblogic-web-app.xsd">
     <wls:container-descriptor>
         <wls:prefer-application-packages>
-            <wls:package-name>org.slf4j</wls:package-name>
+            <wls:package-name>org.slf4j.*</wls:package-name>
+            <wls:package-name>com.fasterxml.jackson.*</wls:package-name>
         </wls:prefer-application-packages>
     </wls:container-descriptor>
 </wls:weblogic-web-app>
