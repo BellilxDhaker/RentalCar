@@ -40,6 +40,10 @@ public class Payment {
     }
 
     public Payment(Integer paymentID, User user, Reservation reservation, String transactionId, String currency, String status, LocalDateTime createdAt, String squarePaymentId) {
+        if (reservation == null || reservation.getReservationID() == null || reservation.getReservationID() == 0) {
+            throw new IllegalArgumentException("Reservation must not be null or have id 0");
+        }
+
         this.paymentID = paymentID;
         this.user = user;
         this.reservation = reservation;
@@ -49,13 +53,6 @@ public class Payment {
         this.status = status;
         this.createdAt = createdAt;
         this.squarePaymentId = squarePaymentId;
-
-        // Automatically extract amount from reservation
-        if (reservation != null) {
-            this.amount = reservation.getTotalAmount();
-        } else {
-            throw new IllegalArgumentException("Reservation must not be null to extract amount.");
-        }
     }
 
     // Getters and Setters
