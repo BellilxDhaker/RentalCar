@@ -14,6 +14,8 @@ import com.example.RentalCar.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -130,7 +132,20 @@ public class ReservationController {
     public ResponseEntity<ApiResponse<Reservation>> createReservation(
             @RequestBody Reservation reservation,
             BindingResult result) {
-        LOGGER.info("Received reservation creation request");
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName(); // This should be the email  stored in JWT
+
+        // Lookup the user by email
+        Optional<User> userOpt = userRepo.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>("User not found from token", null, "Invalid user token"));
+        }
+
+        // Set the user to the reservation
+        reservation.setUser(userOpt.get());
+
         return handleCreateOrUpdateReservation(null, reservation, result, false);
     }
 
@@ -139,6 +154,18 @@ public class ReservationController {
             @PathVariable Integer id,
             @RequestBody Reservation reservation,
             BindingResult result) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        Optional<User> userOpt = userRepo.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>("User not found from token", null, "Invalid user token"));
+        }
+
+        reservation.setUser(userOpt.get());
+
         return handleUpdateReservation(id, reservation, result, false);
     }
 
@@ -174,14 +201,16 @@ public class ReservationController {
             return ResponseEntity.badRequest().body(new ApiResponse<>(null, null, errorMessages));
         }
 
-        // User validation
+        // User validation - now optional, as user is set from JWT
         if (reservation.getUser() == null || reservation.getUser().getId() == null) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>("User ID is required", null, "Missing user ID"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>("User must be authenticated", null, "Missing user ID"));
         }
         Optional<User> userOpt = userRepo.findById(reservation.getUser().getId());
         if (userOpt.isEmpty()) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("User not found", null, "Invalid user ID"));
         }
+
 
         // Vehicle validation
         if (reservation.getVehicle() == null || reservation.getVehicle().getVehicleID() == null) {
