@@ -116,10 +116,6 @@ public class ReservationController {
         if (reservationOpt.isPresent()) {
             Reservation reservation = reservationOpt.get();
             Vehicle vehicle = reservation.getVehicle();
-            if (vehicle != null) {
-                vehicle.setAvailability(true); // Make vehicle available again
-                vehicleRepo.save(vehicle);
-            }
             reservationRepo.deleteById(id);
             LOGGER.info("Reservation deleted: ID " + id);
             return ResponseEntity.ok(new ApiResponse<>("Reservation deleted successfully", null, null));
